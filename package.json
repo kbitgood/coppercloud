@@ -1,0 +1,16 @@
+{
+  "name": "coppercloud",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "coppercloud": "./src/cli.ts"
+  },
+  "scripts": {
+    "start": "bun run ./src/cli.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@napi-rs/keyring": "^1.2.0"
+  }
+}
