@@ -1,6 +1,6 @@
 {
   "name": "coppercloud",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A CLI that wraps curl with API key injection from the native OS credential store.",
   "license": "MIT",
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kbitgood/coppercloud.git"
+    "url": "git+https://github.com/kbitgood/coppercloud.git"
   },
   "keywords": [
     "cli",
