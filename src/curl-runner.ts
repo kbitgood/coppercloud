@@ -1,3 +1,5 @@
+import { spawn } from 'node:child_process'
+
 import { loadIndex } from './index-store'
 import { findBestMatch } from './match'
 import { readSecret } from './secret-store'
@@ -61,30 +63,22 @@ async function spawnCurl(
     redactions: string[]
   },
 ): Promise<CurlRunResult> {
-  const command = ['curl', ...args]
-
   if (!options) {
-    const proc = Bun.spawn(command, {
-      stdin: 'inherit',
-      stdout: 'inherit',
-      stderr: 'inherit',
+    const proc = spawn('curl', args, {
+      stdio: 'inherit',
     })
 
-    const code = await proc.exited
-    return { code }
+    return waitForExit(proc)
   }
 
-  const proc = Bun.spawn(['curl', '--config', '-', ...args], {
-    stdin: 'pipe',
-    stdout: 'inherit',
-    stderr: 'pipe',
+  const proc = spawn('curl', ['--config', '-', ...args], {
+    stdio: ['pipe', 'inherit', 'pipe'],
   })
 
-  proc.stdin.write(buildCurlConfig(options.injectedHeader))
-  await proc.stdin.end()
+  proc.stdin?.end(buildCurlConfig(options.injectedHeader))
 
   const redactionTask = pipeRedacted(proc.stderr, process.stderr, options.redactions)
-  const code = await proc.exited
+  const { code } = await waitForExit(proc)
   await redactionTask
   return { code }
 }
@@ -94,21 +88,18 @@ function buildCurlConfig(header: string): string {
 }
 
 async function pipeRedacted(
-  input: ReadableStream<Uint8Array>,
+  input: NodeJS.ReadableStream | null,
   output: NodeJS.WritableStream,
   redactions: string[],
 ): Promise<void> {
-  const decoder = new TextDecoder()
-  const reader = input.getReader()
+  if (!input) {
+    return
+  }
+
   let pending = ''
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) {
-      break
-    }
-
-    pending += decoder.decode(value, { stream: true })
+  for await (const chunk of input) {
+    pending += Buffer.isBuffer(chunk) ? chunk.toString('utf8') : String(chunk)
     const lines = pending.split('\n')
     pending = lines.pop() ?? ''
 
@@ -117,10 +108,18 @@ async function pipeRedacted(
     }
   }
 
-  pending += decoder.decode()
   if (pending) {
     output.write(redactText(pending, redactions))
   }
+}
+
+function waitForExit(proc: ReturnType<typeof spawn>): Promise<CurlRunResult> {
+  return new Promise((resolve, reject) => {
+    proc.once('error', reject)
+    proc.once('close', (code) => {
+      resolve({ code: code ?? 1 })
+    })
+  })
 }
 
 function redactText(text: string, redactions: string[]): string {

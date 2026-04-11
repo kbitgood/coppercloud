@@ -1,6 +1,6 @@
 {
   "name": "coppercloud",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A CLI that wraps curl with API key injection from the native OS credential store.",
   "license": "MIT",
   "type": "module",
