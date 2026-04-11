@@ -1,5 +1,3 @@
-#!/usr/bin/env bun
-
 import { handleAdd, handleCurl, handleLs, handleRm } from './commands'
 
 const [, , command, ...args] = process.argv

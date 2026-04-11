@@ -1,16 +1,51 @@
 {
   "name": "coppercloud",
   "version": "0.1.0",
-  "private": true,
+  "description": "A CLI that wraps curl with API key injection from the native OS credential store.",
+  "license": "MIT",
   "type": "module",
-  "bin": {
-    "coppercloud": "./src/cli.ts"
+  "homepage": "https://github.com/kbitgood/coppercloud#readme",
+  "bugs": {
+    "url": "https://github.com/kbitgood/coppercloud/issues"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kbitgood/coppercloud.git"
+  },
+  "keywords": [
+    "cli",
+    "curl",
+    "api",
+    "secrets",
+    "keychain",
+    "keyring",
+    "security"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "coppercloud": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
+    "build": "bunx esbuild ./src/cli.ts --bundle --platform=node --format=esm --target=node18 --external:@napi-rs/keyring --banner:js='#!/usr/bin/env node' --outfile=./dist/cli.js && chmod +x ./dist/cli.js",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "bun test && bun run build && bun run pack:check",
     "start": "bun run ./src/cli.ts",
     "test": "bun test"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@napi-rs/keyring": "^1.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
   }
 }
