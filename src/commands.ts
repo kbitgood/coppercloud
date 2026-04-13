@@ -1,16 +1,21 @@
 import { deleteSecret, saveSecret } from './secret-store'
 import { loadIndex, removeEntry, upsertEntry } from './index-store'
 import { promptForSecret, promptForSelection, readSecretFromStdin } from './prompt'
+import { CliUsageError, isCommandHelpRequest } from './help'
 import { normalizeBaseUrl } from './url'
 import { runCurl } from './curl-runner'
 
 export async function handleAdd(args: string[]): Promise<number> {
+  if (isCommandHelpRequest(args)) {
+    return 0
+  }
+
   const fromStdin = args.includes('--from-stdin')
   const positionalArgs = args.filter((arg) => arg !== '--from-stdin')
   const baseUrl = positionalArgs[0]
 
   if (!baseUrl || positionalArgs.length !== 1) {
-    throw new Error('Usage: coppercloud add <base-url> [--from-stdin]')
+    throw new CliUsageError('Expected exactly one <base-url>.', 'add')
   }
 
   const normalizedUrl = normalizeBaseUrl(baseUrl)
@@ -27,7 +32,11 @@ export async function handleAdd(args: string[]): Promise<number> {
   return 0
 }
 
-export async function handleLs(): Promise<number> {
+export async function handleLs(args: string[] = []): Promise<number> {
+  if (isCommandHelpRequest(args)) {
+    return 0
+  }
+
   const entries = (await loadIndex()).entries
 
   if (entries.length === 0) {
@@ -42,7 +51,11 @@ export async function handleLs(): Promise<number> {
   return 0
 }
 
-export async function handleRm(): Promise<number> {
+export async function handleRm(args: string[] = []): Promise<number> {
+  if (isCommandHelpRequest(args)) {
+    return 0
+  }
+
   const entries = (await loadIndex()).entries
 
   if (entries.length === 0) {
@@ -63,6 +76,10 @@ export async function handleRm(): Promise<number> {
 }
 
 export async function handleCurl(args: string[]): Promise<number> {
+  if (isCommandHelpRequest(args)) {
+    return 0
+  }
+
   const result = await runCurl(args)
   return result.code
 }

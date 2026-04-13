@@ -4,25 +4,35 @@
 
 The goal is to let people and AI agents call web APIs without storing API keys in `.env` files or plaintext config files, and without needing the caller to manually handle secrets for every request.
 
+## Why It Exists
+
+`coppercloud` is being built to reduce secret exposure when working with web APIs locally, especially in workflows that involve AI agents. The intent is to keep secrets on the user's machine, inside native secure storage, while still making authenticated API calls easy.
+
 ## What It Does
 
 - Stores API keys in the OS credential store
 - Matches saved keys to request base URLs and subpaths
 - Wraps `curl` and injects `Authorization: Bearer ...` when a matching key exists
 - Avoids printing saved secrets in normal command output
+- Provides built-in help for the root CLI and each subcommand with `--help`
 
-## Commands
+## Built-In Help
 
-What exists today:
+Every command should explain itself in the terminal:
 
-- `coppercloud add <base-url> [--from-stdin]`
-- `coppercloud curl <url> [curl args...]`
-- `coppercloud ls`
-- `coppercloud rm`
+```bash
+coppercloud --help
+coppercloud add --help
+coppercloud curl --help
+coppercloud ls --help
+coppercloud rm --help
+```
 
-## Why It Exists
+You can also use:
 
-`coppercloud` is being built to reduce secret exposure when working with web APIs locally, especially in workflows that involve AI agents. The intent is to keep secrets on the user's machine, inside native secure storage, while still making authenticated API calls easy.
+```bash
+coppercloud help curl
+```
 
 ## Installation
 
@@ -48,7 +58,7 @@ bun install -g coppercloud
 
 If the underlying secure storage service is unavailable, `coppercloud` will surface a platform-specific error message.
 
-## First Run
+## Quick Start
 
 Save an API key:
 
@@ -80,12 +90,36 @@ Remove a saved key:
 coppercloud rm
 ```
 
+## Command Summary
+
+- `coppercloud add <base-url> [--from-stdin]`
+- `coppercloud curl <url> [curl args...]`
+- `coppercloud ls`
+- `coppercloud rm`
+
+## Matching Behavior
+
+- Saved base URLs are normalized before storage.
+- Requests match by protocol, host, port, and path prefix.
+- The most specific saved path wins.
+- If you pass your own `Authorization` header, `coppercloud` will not inject one.
+- If no key matches, the request is forwarded to `curl` unchanged.
+
 ## Security Notes
 
 - API keys are stored in the OS credential store, not in a `.env` file.
 - `coppercloud` keeps a local index of saved base URLs so it can match requests to stored secrets.
 - The local index contains request base URLs and entry metadata, but not the secret values themselves.
 - Normal CLI output avoids printing stored secrets.
+
+## Documentation
+
+More detailed docs live in [`docs/README.md`](./docs/README.md):
+
+- [`docs/getting-started.md`](./docs/getting-started.md)
+- [`docs/command-reference.md`](./docs/command-reference.md)
+- [`docs/examples.md`](./docs/examples.md)
+- [`docs/ai-agents.md`](./docs/ai-agents.md)
 
 ## Development
 
